@@ -1,8 +1,8 @@
 from math import log, sqrt
 from collections import Counter
 from tqdm import tqdm
+import re
 import nltk
-
 # Download NLTK stopwords if not already available
 nltk.download('stopwords', quiet=True)
 from nltk.corpus import stopwords
@@ -17,12 +17,33 @@ stemmer = PorterStemmer()
 
 # ---------------------- Text Processing ----------------------
 
-def tokenize(text):
+
+def tokenize(text, ngram_range=(1, 3)):
     """
-    Tokenize a given text into stemmed tokens while removing stopwords.
+    Tokenizes text into n-grams (e.g., unigrams, bigrams, trigrams),
+    with stemming and stopword removal.
+    
+    Args:
+        text (str): Input text.
+        ngram_range (tuple): The range of n-grams to include (min_n, max_n).
+                            Example: (1, 3) → unigrams, bigrams, trigrams.
+    
+    Returns:
+        list[str]: List of tokens including n-grams.
     """
-    tokens = text.lower().split()
-    return [stemmer.stem(t) for t in tokens if t not in stop_words and len(t) > 1]
+    # Basic preprocessing and tokenization
+    tokens = re.findall(r'\b\w+\b', text.lower())
+    tokens = [stemmer.stem(t) for t in tokens if t not in stop_words and len(t) > 1]
+
+    # Generate n-grams
+    all_ngrams = tokens.copy()
+    min_n, max_n = ngram_range
+    for n in range(2, max_n + 1):
+        ngrams = ['_'.join(tokens[i:i+n]) for i in range(len(tokens) - n + 1)]
+        all_ngrams.extend(ngrams)
+
+    return all_ngrams
+
 
 
 # ---------------------- Vocabulary & Frequency ----------------------
@@ -115,9 +136,9 @@ corpus = [
     "dogs and cats are great"
 ]
 
-#vocab = build_vocab(corpus)
-#idf = inverse_document_frequency(corpus, vocab)
-#tfidf_vectors = compute_tfidf(corpus, vocab, idf)
-#print_tfidf_vectors(tfidf_vectors,vocab)
-#for i, vec in enumerate(tfidf_vectors):
-#print(f"Document {i+1} TF-IDF: {vec}
+'''vocab = build_vocab(corpus)
+idf = inverse_document_frequency(corpus, vocab)
+tfidf_vectors = compute_tfidf(corpus, vocab, idf)
+print_tfidf_vectors(tfidf_vectors,vocab)
+for i, vec in enumerate(tfidf_vectors):
+    print(f"Document {i+1} TF-IDF: {vec}")'''
